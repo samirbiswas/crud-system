@@ -1,41 +1,61 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+
 import './AddUserForm.css'
+
+
 const AddUserForm = () => {
+    
+    const [imgFile, setImgFile]=useState()
 
-    const { register, handleSubmit } = useForm();
+    const { register,handleSubmit} = useForm();
+    const handelUpload=(e)=>{
+
+        //console.log("upload", e.target.files[0])
+        setImgFile(e.target.files[0])
+    }
+
+    const onSubmit = data => {
 
 
-
-    const onSubmit = (data) => {
-        // const details = {...data};
-        // fetch('https://fast-temple-74960.herokuapp.com/addData',{
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json',
-        //                 'Accept': 'application/json' },
-        //     body: JSON.stringify(details)
-            
-        // })
-        // .then(res=>res.json())
-        // .then(result=>{
-        //  if(result){
-        //      alert("data send Successfully");
-        //  }
-          
-        // })
         console.log(data)
-      };
+         const image = data.img[0];
+        let imgUrl;
+        let sendObject;
+       
+        let body= new FormData();
+        body.set('key', '994f313582445f0bb4434c8cda32a43a')
+        body.append('image', image)
+          fetch("https://api.imgbb.com/1/upload?key=994f313582445f0bb4434c8cda32a43a",{
+            method: 'POST',
+            body: body
+         })
+        .then(res=>res.json()
+        .then(img=>{
+            //console.log(img)
+            imgUrl =img.data.display_url;
+            if(imgUrl != null){
+                sendObject={name: data.productName,details: data.productSize, image : imgUrl}
+                //console.log(sendObject)
+                fetch('https://limitless-reaches-25473.herokuapp.com/productStore',{
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json',
+                                'Accept': 'application/json' },
+                    body: JSON.stringify(sendObject)
+                })
+                .then(res=>res.json())
+                .then(data=>{
+                    
+                    data? alert("Service added"): console.log(data)  
+                })
 
-    // const upload = (e) => {
-    //     uploadImage(e.target.files[0])
-    //         .then(resp => {
-    //             // console.log(resp.data.data.thumb.url) // I'm aware it's data.data, that is how it returns stuff
-    //             const newObject = { ...orderInfo }
-    //             newObject.imageUrl = resp.data.data.thumb.url;
-    //             setOrderInfo(newObject);
-    //         })
-    //     e.preventDefault();
-    // }
+            }
+            
+             
+           
+        }))
+        
+    }
     return (
     <div className='container mt-4'>
             
@@ -43,13 +63,13 @@ const AddUserForm = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
             <label htmlFor="country">Product Name</label>
                 <br/>
-                    <input id="inputName" name="name" placeholder='Enter Product Name' className="form-control" ref={register({ required: true })}/>
+                    <input  id="inputName" name="productName" placeholder='Enter Product Name' className="form-control" ref={register({ required: true })} />
                 <br/>
                 <div className="col-25">
                     <label htmlFor="country">Select Size</label>
                         </div>
                             <div className="col-75">
-                                <select id="country" name="product-size" ref={register({ required: true })}>
+                                <select id="country" name="productSize" ref={register} >
                                     <option value="small">SM</option>
                                     <option value="big">XL</option>
                                     <option value="medium">MD</option>
@@ -57,9 +77,9 @@ const AddUserForm = () => {
                             </div>
                 
                 <br/>
-                    <input id="file" type='file' name="file" placeholder="upload file" className="form-control-file" ref={register({ required: true })}/>
+                <input type="file" name="img"  onChange={handelUpload} ref={register} />
                 <br/>
-                    <button type="submit" className="btn btn-primary">Submit</button>
+                <input type="submit"className="btn btn-primary"/>  
             </form>
         </div>
     </div>
